@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Munich Half Marathon 2026 — Training Dashboard</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HM 2026">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0f172a;
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #1d4ed8 100%);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 2.5rem 0 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '21.1';
+      position: absolute; right: -1rem; top: -1rem;
+      font-size: 12rem; font-weight: 800; opacity: .04;
+      color: white; line-height: 1; pointer-events: none;
+    }
+    .hero-title { font-size: 2rem; font-weight: 800; letter-spacing: -.02em; }
+    .hero-sub { color: #94a3b8; font-size: .9rem; margin-top: .25rem; }
+    .countdown-block {
+      display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+    .cdown-item { text-align: center; }
+    .cdown-num {
+      font-size: 3rem; font-weight: 800; line-height: 1;
+      background: linear-gradient(135deg, #60a5fa, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .cdown-label { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: #64748b; }
+    .cdown-sep { font-size: 2rem; color: #334155; margin-bottom: .4rem; }
+    .phase-pill {
+      display: inline-block; padding: .3rem .8rem; border-radius: 999px;
+      font-size: .8rem; font-weight: 600;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+      color: white;
+    }
+    .kpi-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+      padding: 1rem 1.25rem; height: 100%;
+    }
+    .kpi-value { font-size: 1.75rem; font-weight: 800; color: #f1f5f9; line-height: 1.1; }
+    .kpi-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: #64748b; margin-top: .2rem; }
+    .kpi-icon { font-size: 1.5rem; float: right; opacity: .4; }
+    .status-bar {
+      background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+      padding: .75rem 1.25rem; display: flex; align-items: center; gap: .75rem;
+    }
+    .nav-tabs {
+      border-bottom: 2px solid #1e293b;
+      gap: .25rem;
+    }
+    .nav-tabs .nav-link {
+      color: #94a3b8; border: none; border-radius: 8px 8px 0 0;
+      padding: .65rem 1.25rem; font-weight: 600; font-size: .88rem;
+      background: transparent; transition: all .15s;
+    }
+    .nav-tabs .nav-link:hover { color: #e2e8f0; background: #1e293b; }
+    .nav-tabs .nav-link.active {
+      color: #60a5fa; background: #1e293b;
+      border-bottom: 2px solid #3b82f6;
+    }
+    .nav-pills .nav-link {
+      color: #94a3b8; font-size: .82rem; font-weight: 600;
+      padding: .4rem .9rem; border-radius: 8px; transition: all .15s;
+    }
+    .nav-pills .nav-link:hover { color: #e2e8f0; background: rgba(255,255,255,.07); }
+    .nav-pills .nav-link.active { background: #334155; color: #60a5fa; }
+    .content-card {
+      background: #1e293b; border: 1px solid #334155; border-radius: 0 14px 14px 14px;
+      padding: 1.5rem;
+    }
+    .section-heading {
+      font-size: .75rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: #475569; margin-bottom: .75rem;
+    }
+    .table { color: #cbd5e1; --bs-table-striped-bg: rgba(255,255,255,.04); }
+    .table thead.table-dark { background: #0f172a; --bs-table-bg: #0f172a; }
+    .table-hover tbody tr:hover { background: rgba(255,255,255,.06); color: #f1f5f9; }
+    .strategy-card {
+      background: #0f172a; border: 1px solid #334155; border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+    .strategy-card h6 { font-weight: 700; color: #60a5fa; margin-bottom: .5rem; }
+    .strategy-card ul { margin: 0; padding-left: 1.25rem; color: #94a3b8; font-size: .88rem; }
+    .pace-zone { display: flex; align-items: center; gap: .5rem; font-size: .82rem; margin-bottom: .4rem; }
+    .pace-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    footer { color: #334155; font-size: .78rem; padding: 1.5rem 0; text-align: center; }
+    .chart-wrap { width: 100%; }
+    .chart-svg { width: 100%; height: auto; display: block; }
+    .vbar { transition: filter .12s; cursor: crosshair; }
+    .vbar:hover { filter: brightness(1.3) drop-shadow(0 0 3px rgba(255,255,255,.2)); }
+    .pdot { transition: filter .12s; cursor: crosshair; }
+    .pdot:hover { filter: brightness(1.4) drop-shadow(0 0 5px #818cf8); }
+    .gbar { cursor: default; transition: opacity .12s; }
+    .gbar:hover { opacity: 1 !important; }
+    .gbar-fill { transition: filter .12s; }
+    .gbar:hover .gbar-fill { filter: brightness(1.18); }
+    .chart-legend { display: flex; gap: 1.1rem; flex-wrap: wrap; margin-top: .6rem;
+                     font-size: .76rem; color: #94a3b8; align-items: center; }
+    .chart-legend .ci { display: flex; align-items: center; gap: .4rem; }
+    .chart-legend .sw { width: 16px; height: 4px; border-radius: 2px; display: inline-block; }
+    #cht {
+      position: fixed; z-index: 9999; display: none; pointer-events: none;
+      background: #0f172a; color: #e2e8f0; border: 1px solid #334155;
+      border-radius: 9px; padding: .45rem .75rem; font-size: .78rem;
+      font-family: 'Inter', system-ui, sans-serif;
+      box-shadow: 0 6px 24px rgba(0,0,0,.55); max-width: 360px; line-height: 1.55;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="row align-items-start">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span style="font-size:1.8rem">🏃</span>
+          <h1 class="hero-title mb-0">Munich Half Marathon 2026</h1>
+        </div>
+        <p class="hero-sub">Training Dashboard · Jayendra · Goal: Sub 2:15 / Sub 2:30 &nbsp;·&nbsp; <span style="color:#93c5fd;font-weight:600">Friday, July 17, 2026</span> &nbsp;·&nbsp; Last sync: N/A</p>
+        <div class="countdown-block">
+          <div class="cdown-item">
+            <div class="cdown-num">86</div>
+            <div class="cdown-label">Days to go</div>
+          </div>
+          <div class="cdown-sep">·</div>
+          <div class="cdown-item">
+            <div class="cdown-num">W1<span style="font-size:1.4rem;opacity:.6">/12</span></div>
+            <div class="cdown-label">Training week</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mt-3 mt-md-0 text-md-end">
+        <div class="phase-pill mb-2">Week 1 / 12 — Base</div><br>
+        <span class="badge bg-success fs-6 px-3 py-2">On track ✓</span>
+        <div class="text-muted small mt-2">0 runs logged</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- KPI ROW -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-value">0.0</div>
+        <div class="kpi-label">km/week (4w avg)</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">📆</div>
+        <div class="kpi-value">0.0</div>
+        <div class="kpi-label">km last week</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">📏</div>
+        <div class="kpi-value">0.0</div>
+        <div class="kpi-label">km longest run</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">⏱️</div>
+        <div class="kpi-value">—</div>
+        <div class="kpi-label">avg pace (last week)</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">🎯</div>
+        <div class="kpi-value">6:23</div>
+        <div class="kpi-label">stretch HMP</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="kpi-card">
+        <div class="kpi-icon">🏁</div>
+        <div class="kpi-value">Oct 11</div>
+        <div class="kpi-label">race day</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRENT WEEK CALENDAR -->
+  <div style="background:#1e293b;border:1px solid #334155;border-radius:14px;padding:1.25rem;margin-bottom:1.5rem"><div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#475569;margin-bottom:.85rem">Week 1 &nbsp;·&nbsp; Jul 20 &nbsp;·&nbsp; <span style="color:#3b82f6">Base</span> &nbsp;·&nbsp; Target: <span style="color:#f1f5f9">13 km</span></div><div style="display:flex;gap:.5rem;flex-wrap:wrap"><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0a0f1a;border:1px solid #1e293b;opacity:0.55"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#334155;margin-bottom:.15rem">Mon</div><div style="font-size:.65rem;color:#334155;margin-bottom:.5rem">Jul 13</div><div style="font-size:1rem;margin-bottom:.3rem">💤</div><div style="font-size:.75rem;color:#475569;line-height:1.4">Strength training</div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0a0f1a;border:1px solid #1e293b;opacity:0.55"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#334155;margin-bottom:.15rem">Tue</div><div style="font-size:.65rem;color:#334155;margin-bottom:.5rem">Jul 14</div><div style="font-size:1rem;margin-bottom:.3rem">🏃</div><div style="font-size:.75rem;color:#475569;line-height:1.4">Easy 5k @7:00–7:30/km</div><div style="margin-top:.45rem;padding:.3rem .4rem;border-radius:6px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)"><div style="font-size:.6rem;font-weight:700;color:#ef4444">✗ NOT DONE</div></div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0a0f1a;border:1px solid #1e293b;opacity:0.55"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#334155;margin-bottom:.15rem">Wed</div><div style="font-size:.65rem;color:#334155;margin-bottom:.5rem">Jul 15</div><div style="font-size:1rem;margin-bottom:.3rem">💤</div><div style="font-size:.75rem;color:#475569;line-height:1.4">Strength training</div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0a0f1a;border:1px solid #1e293b;opacity:0.55"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#334155;margin-bottom:.15rem">Thu</div><div style="font-size:.65rem;color:#334155;margin-bottom:.5rem">Jul 16</div><div style="font-size:1rem;margin-bottom:.3rem">💤</div><div style="font-size:.75rem;color:#475569;line-height:1.4">Rest</div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#1e3a5f;border:2px solid #3b82f6;opacity:1"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#60a5fa;margin-bottom:.15rem">Fri<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#3b82f6;margin-left:5px;vertical-align:middle"></span></div><div style="font-size:.65rem;color:#93c5fd;margin-bottom:.5rem">Jul 17</div><div style="font-size:1rem;margin-bottom:.3rem">💤</div><div style="font-size:.75rem;color:#f1f5f9;line-height:1.4">Strength training</div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0f172a;border:1px solid #334155;opacity:1"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:.15rem">Sat</div><div style="font-size:.65rem;color:#475569;margin-bottom:.5rem">Jul 18</div><div style="font-size:1rem;margin-bottom:.3rem">📏</div><div style="font-size:.75rem;color:#94a3b8;line-height:1.4">Long 8k @7:00–7:30/km</div></div><div style="flex:1;min-width:110px;border-radius:10px;padding:.75rem .65rem;background:#0f172a;border:1px solid #334155;opacity:1"><div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#64748b;margin-bottom:.15rem">Sun</div><div style="font-size:.65rem;color:#475569;margin-bottom:.5rem">Jul 19</div><div style="font-size:1rem;margin-bottom:.3rem">💤</div><div style="font-size:.75rem;color:#94a3b8;line-height:1.4">Rest or bike</div></div></div></div>
+
+  <!-- TABS -->
+  <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview">
+        📊 Overview
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-plan">
+        📋 Training Plan
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-strategy">
+        🧠 Race Strategy
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-nutrition">
+        🍎 Pre-Run Nutrition
+      </button>
+    </li>
+  </ul>
+
+  <!-- TAB: OVERVIEW -->
+  <div class="tab-content">
+  <div class="tab-pane fade show active content-card" id="tab-overview">
+
+    <ul class="nav nav-pills mb-3" id="overviewPills" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#ov-global" type="button">📈 Global Training</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#ov-week" type="button">📅 This Week</button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+
+      <div class="tab-pane fade show active" id="ov-global" role="tabpanel">
+        <p class="section-heading">Weekly Volume — Observed vs Planned</p>
+        <div class="chart-wrap"><svg viewBox="0 0 920 360" class="chart-svg" preserveAspectRatio="xMidYMid meet" role="img"><line x1="38" y1="312.0" x2="906" y2="312.0" stroke="#1e293b"/><text x="32" y="315.0" fill="#64748b" font-size="10" text-anchor="end">0</text><line x1="38" y1="238.5" x2="906" y2="238.5" stroke="#1e293b"/><text x="32" y="241.5" fill="#64748b" font-size="10" text-anchor="end">10</text><line x1="38" y1="165.0" x2="906" y2="165.0" stroke="#1e293b"/><text x="32" y="168.0" fill="#64748b" font-size="10" text-anchor="end">20</text><line x1="38" y1="91.5" x2="906" y2="91.5" stroke="#1e293b"/><text x="32" y="94.5" fill="#64748b" font-size="10" text-anchor="end">30</text><line x1="38" y1="18.0" x2="906" y2="18.0" stroke="#1e293b"/><text x="32" y="21.0" fill="#64748b" font-size="10" text-anchor="end">40</text><polyline points="74.2,216.5 146.5,194.4 218.8,179.7 291.2,216.5 363.5,157.7 435.8,150.3 508.2,128.2 580.5,194.4 652.8,113.5 725.2,113.5 797.5,179.7 869.8,127.5" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="5 4"/><rect class="vbar" data-tip="Week 1 (Jul 20) — target 13 km" x="71.2" y="213.5" width="6" height="6" transform="rotate(45 74.2 216.5)" fill="#22c55e"></rect><text x="74.2" y="207.5" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">13</text><rect class="vbar" data-tip="Week 2 (Jul 27) — target 16 km" x="143.5" y="191.4" width="6" height="6" transform="rotate(45 146.5 194.4)" fill="#22c55e"></rect><text x="146.5" y="185.4" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">16</text><rect class="vbar" data-tip="Week 3 (Aug 3) — target 18 km" x="215.8" y="176.7" width="6" height="6" transform="rotate(45 218.8 179.7)" fill="#22c55e"></rect><text x="218.8" y="170.7" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">18</text><rect class="vbar" data-tip="Week 4 (Aug 10) — target 13 km" x="288.2" y="213.5" width="6" height="6" transform="rotate(45 291.2 216.5)" fill="#22c55e"></rect><text x="291.2" y="207.5" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">13</text><rect class="vbar" data-tip="Week 5 (Aug 17) — target 21 km" x="360.5" y="154.7" width="6" height="6" transform="rotate(45 363.5 157.7)" fill="#22c55e"></rect><text x="363.5" y="148.7" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">21</text><rect class="vbar" data-tip="Week 6 (Aug 24) — target 22 km" x="432.8" y="147.3" width="6" height="6" transform="rotate(45 435.8 150.3)" fill="#22c55e"></rect><text x="435.8" y="141.3" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">22</text><rect class="vbar" data-tip="Week 7 (Aug 31) — target 25 km" x="505.2" y="125.2" width="6" height="6" transform="rotate(45 508.2 128.2)" fill="#22c55e"></rect><text x="508.2" y="119.2" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">25</text><rect class="vbar" data-tip="Week 8 (Sep 7) — target 16 km" x="577.5" y="191.4" width="6" height="6" transform="rotate(45 580.5 194.4)" fill="#22c55e"></rect><text x="580.5" y="185.4" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">16</text><rect class="vbar" data-tip="Week 9 (Sep 14) — target 27 km" x="649.8" y="110.5" width="6" height="6" transform="rotate(45 652.8 113.5)" fill="#22c55e"></rect><text x="652.8" y="104.5" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">27</text><rect class="vbar" data-tip="Week 10 (Sep 21) — target 27 km" x="722.2" y="110.5" width="6" height="6" transform="rotate(45 725.2 113.5)" fill="#22c55e"></rect><text x="725.2" y="104.5" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">27</text><rect class="vbar" data-tip="Week 11 (Sep 28) — target 18 km" x="794.5" y="176.7" width="6" height="6" transform="rotate(45 797.5 179.7)" fill="#22c55e"></rect><text x="797.5" y="170.7" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">18</text><rect class="vbar" data-tip="Week 12 (Oct 5) — target 25 km" x="866.8" y="124.5" width="6" height="6" transform="rotate(45 869.8 127.5)" fill="#22c55e"></rect><text x="869.8" y="118.5" fill="#86efac" font-size="8" text-anchor="middle" pointer-events="none">25</text><line x1="869.8" y1="18" x2="869.8" y2="312" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2 3"/><text x="869.8" y="13" fill="#ef4444" font-size="11" text-anchor="end">🏁</text><text x="74.2" y="328" fill="#475569" font-size="9" text-anchor="middle">W1</text><text x="146.5" y="328" fill="#475569" font-size="9" text-anchor="middle">W2</text><text x="218.8" y="328" fill="#475569" font-size="9" text-anchor="middle">W3</text><text x="291.2" y="328" fill="#475569" font-size="9" text-anchor="middle">W4</text><text x="363.5" y="328" fill="#475569" font-size="9" text-anchor="middle">W5</text><text x="435.8" y="328" fill="#475569" font-size="9" text-anchor="middle">W6</text><text x="508.2" y="328" fill="#475569" font-size="9" text-anchor="middle">W7</text><text x="580.5" y="328" fill="#475569" font-size="9" text-anchor="middle">W8</text><text x="652.8" y="328" fill="#475569" font-size="9" text-anchor="middle">W9</text><text x="725.2" y="328" fill="#475569" font-size="9" text-anchor="middle">W10</text><text x="797.5" y="328" fill="#475569" font-size="9" text-anchor="middle">W11</text><text x="869.8" y="328" fill="#475569" font-size="9" text-anchor="middle">W12</text><text x="74.2" y="342" fill="#64748b" font-size="9" text-anchor="middle">Jul 20</text><text x="218.8" y="342" fill="#64748b" font-size="9" text-anchor="middle">Aug 3</text><text x="363.5" y="342" fill="#64748b" font-size="9" text-anchor="middle">Aug 17</text><text x="508.2" y="342" fill="#64748b" font-size="9" text-anchor="middle">Aug 31</text><text x="652.8" y="342" fill="#64748b" font-size="9" text-anchor="middle">Sep 14</text><text x="797.5" y="342" fill="#64748b" font-size="9" text-anchor="middle">Sep 28</text></svg><div class="chart-legend"><span class="ci"><span class="sw" style="background:#3b82f6"></span>Observed km</span><span class="ci"><span class="sw" style="background:#f97316"></span>4-week avg</span><span class="ci"><span class="sw" style="background:#22c55e"></span>Plan target</span></div></div>
+        <p class="section-heading mt-4">Session Pace History</p>
+        <div class="text-muted small">No sessions yet.</div>
+        <p class="section-heading mt-4">Fitness &amp; Fatigue (Training Load)</p>
+        <div class="text-muted small mb-2">CTL = Fitness (long-term load average) &middot; ATL = Fatigue (short-term load average) &middot; Form = CTL &minus; ATL (positive = fresh, negative = digging into fatigue)</div>
+        <div class="text-muted small">No wellness data synced yet.</div>
+        <p class="section-heading mt-4">Recent Sessions <span class="text-muted small fw-normal">(📈 = click for HR/pace curves)</span></p>
+        <div class="text-muted small">No runs recorded yet.</div>
+      </div>
+
+      <div class="tab-pane fade" id="ov-week" role="tabpanel">
+        <p class="section-heading">Week 1 &mdash; Daily km Accumulation (Planned vs Actual)</p>
+        <div class="chart-wrap"><svg viewBox="0 0 920 290" class="chart-svg" preserveAspectRatio="xMidYMid meet" role="img"><line x1="46" y1="242.0" x2="906" y2="242.0" stroke="#1e293b"/><text x="40" y="245.0" fill="#64748b" font-size="10" text-anchor="end">0</text><line x1="46" y1="188.5" x2="906" y2="188.5" stroke="#1e293b"/><text x="40" y="191.5" fill="#64748b" font-size="10" text-anchor="end">5</text><line x1="46" y1="135.0" x2="906" y2="135.0" stroke="#1e293b"/><text x="40" y="138.0" fill="#64748b" font-size="10" text-anchor="end">10</text><line x1="46" y1="81.5" x2="906" y2="81.5" stroke="#1e293b"/><text x="40" y="84.5" fill="#64748b" font-size="10" text-anchor="end">15</text><line x1="46" y1="28.0" x2="906" y2="28.0" stroke="#1e293b"/><text x="40" y="31.0" fill="#64748b" font-size="10" text-anchor="end">20</text><line x1="619.3" y1="28" x2="619.3" y2="242" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"/><line x1="46" y1="102.9" x2="906" y2="102.9" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="5 4"/><text x="906" y="97.9" fill="#22c55e" font-size="10" text-anchor="end">Target 13 km</text><polyline points="46.0,242.0 189.3,188.5 332.7,188.5 476.0,188.5 619.3,188.5 762.7,102.9 906.0,102.9" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6 3"/><polyline points="46.0,242.0 189.3,242.0 332.7,242.0 476.0,242.0 619.3,242.0" fill="none" stroke="#22c55e" stroke-width="2.5"/><circle class="pdot" data-tip="Mon — planned cumulative: 0.0 km" cx="46.0" cy="242.0" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="46.0" y="235.0" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><circle class="pdot" data-tip="Tue — planned cumulative: 5.0 km" cx="189.3" cy="188.5" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="189.3" y="181.5" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">5.0</text><circle class="pdot" data-tip="Wed — planned cumulative: 5.0 km" cx="332.7" cy="188.5" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="332.7" y="181.5" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">5.0</text><circle class="pdot" data-tip="Thu — planned cumulative: 5.0 km" cx="476.0" cy="188.5" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="476.0" y="181.5" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">5.0</text><circle class="pdot" data-tip="Fri — planned cumulative: 5.0 km" cx="619.3" cy="188.5" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="619.3" y="181.5" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">5.0</text><circle class="pdot" data-tip="Sat — planned cumulative: 13.0 km" cx="762.7" cy="102.9" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="762.7" y="95.9" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">13.0</text><circle class="pdot" data-tip="Sun — planned cumulative: 13.0 km" cx="906.0" cy="102.9" r="3.5" fill="#3b82f6" stroke="#0f172a" stroke-width="1.2"></circle><text x="906.0" y="95.9" fill="#93c5fd" font-size="9" text-anchor="middle" pointer-events="none">13.0</text><circle class="pdot" data-tip="Mon — actual cumulative: 0.0 km" cx="46.0" cy="242.0" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"></circle><text x="46.0" y="258.0" fill="#86efac" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><circle class="pdot" data-tip="Tue — actual cumulative: 0.0 km" cx="189.3" cy="242.0" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"></circle><text x="189.3" y="258.0" fill="#86efac" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><circle class="pdot" data-tip="Wed — actual cumulative: 0.0 km" cx="332.7" cy="242.0" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"></circle><text x="332.7" y="258.0" fill="#86efac" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><circle class="pdot" data-tip="Thu — actual cumulative: 0.0 km" cx="476.0" cy="242.0" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"></circle><text x="476.0" y="258.0" fill="#86efac" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><circle class="pdot" data-tip="Fri — actual cumulative: 0.0 km" cx="619.3" cy="242.0" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="1.5"></circle><text x="619.3" y="258.0" fill="#86efac" font-size="9" text-anchor="middle" pointer-events="none">0.0</text><text x="46.0" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Mon</text><text x="46.0" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 13</text><text x="189.3" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Tue</text><text x="189.3" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 14</text><text x="332.7" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Wed</text><text x="332.7" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 15</text><text x="476.0" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Thu</text><text x="476.0" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 16</text><text x="619.3" y="258" fill="#60a5fa" font-size="10" font-weight="bold" text-anchor="middle">Fri</text><text x="619.3" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 17</text><text x="762.7" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Sat</text><text x="762.7" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 18</text><text x="906.0" y="258" fill="#64748b" font-size="10" font-weight="normal" text-anchor="middle">Sun</text><text x="906.0" y="272" fill="#475569" font-size="9" text-anchor="middle">Jul 19</text></svg><div class="chart-legend"><span class="ci"><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #3b82f6;vertical-align:middle;margin-right:.3rem"></span>Planned cumulative</span><span class="ci"><span class="sw" style="background:#22c55e"></span>Actual cumulative</span><span class="ci"><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #22c55e;vertical-align:middle;margin-right:.3rem"></span>Week target</span></div></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TAB: TRAINING PLAN -->
+  <div class="tab-pane fade content-card" id="tab-plan">
+
+    <p class="section-heading">12-Week Plan Overview — Weekly targets by phase</p>
+    <div class="chart-wrap"><div class="chart-legend" style="margin:0 0 .8rem"><span class="ci"><span class="sw" style="background:#3b82f6;width:12px;height:12px;border-radius:3px"></span>Base</span><span class="ci"><span class="sw" style="background:#93c5fd;width:12px;height:12px;border-radius:3px"></span>Base ↩ Recovery</span><span class="ci"><span class="sw" style="background:#f97316;width:12px;height:12px;border-radius:3px"></span>Build</span><span class="ci"><span class="sw" style="background:#fdba74;width:12px;height:12px;border-radius:3px"></span>Build ↩ Recovery</span><span class="ci"><span class="sw" style="background:#8b5cf6;width:12px;height:12px;border-radius:3px"></span>Specific</span><span class="ci"><span class="sw" style="background:#86efac;width:12px;height:12px;border-radius:3px"></span>Taper</span><span class="ci"><span class="sw" style="background:#ef4444;width:12px;height:12px;border-radius:3px"></span>Race week</span></div><div class="gbar" data-tip="Week 1 (Jul 20) · Base · target 13 km · long 8 km — Mon: Strength training · Tue: Easy 5k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 8k @7:00–7:30/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W1<span style="color:#475569"> · Jul 20</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:48.1%;height:100%;background:#3b82f6;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">13 km</span></div></div><div class="gbar" data-tip="Week 2 (Jul 27) · Base · target 16 km · long 10 km — Mon: Strength training · Tue: 6k with 4×100m strides @6:00/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 10k @7:00–7:15/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W2<span style="color:#475569"> · Jul 27</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:59.3%;height:100%;background:#3b82f6;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">16 km</span></div></div><div class="gbar" data-tip="Week 3 (Aug 3) · Base · target 18 km · long 11 km — Mon: Strength training · Tue: 7k with 4×400m @5:30–5:50/km (2min rest) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 11k @6:50–7:15/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W3<span style="color:#475569"> · Aug 3</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:66.7%;height:100%;background:#3b82f6;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">18 km</span></div></div><div class="gbar" data-tip="Week 4 (Aug 10) · Base ↩ Recovery · target 13 km · long 8 km — Mon: Strength training · Tue: Easy 5k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 8k @7:00–7:30/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W4<span style="color:#475569"> · Aug 10</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:48.1%;height:100%;background:#93c5fd;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">13 km</span></div></div><div class="gbar" data-tip="Week 5 (Aug 17) · Build · target 21 km · long 13 km — Mon: Strength training · Tue: 8k with 3k tempo @6:00–6:20/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 13k @6:50–7:15/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W5<span style="color:#475569"> · Aug 17</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:77.8%;height:100%;background:#f97316;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">21 km</span></div></div><div class="gbar" data-tip="Week 6 (Aug 24) · Build · target 22 km · long 14 km — Mon: Strength training · Tue: 8k with 4×1k @5:30–5:50/km (90s rest) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 14k @6:45–7:10/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W6<span style="color:#475569"> · Aug 24</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:81.5%;height:100%;background:#f97316;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">22 km</span></div></div><div class="gbar" data-tip="Week 7 (Aug 31) · Build · target 25 km · long 16 km — Mon: Strength training · Tue: 9k with 5k tempo @5:50–6:10/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 16k @6:45–7:10/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W7<span style="color:#475569"> · Aug 31</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:92.6%;height:100%;background:#f97316;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">25 km</span></div></div><div class="gbar" data-tip="Week 8 (Sep 7) · Build ↩ Recovery · target 16 km · long 10 km — Mon: Strength training · Tue: Easy 6k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 10k @7:00–7:15/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W8<span style="color:#475569"> · Sep 7</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:59.3%;height:100%;background:#fdba74;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">16 km</span></div></div><div class="gbar" data-tip="Week 9 (Sep 14) · Specific · target 27 km · long 18 km — Mon: Strength training · Tue: 9k with 5k @HMP (6:20/km) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 18k (last 5k @6:20/km) · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W9<span style="color:#475569"> · Sep 14</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:100.0%;height:100%;background:#8b5cf6;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">27 km</span></div></div><div class="gbar" data-tip="Week 10 (Sep 21) · Specific · target 27 km · long 18 km — Mon: Strength training · Tue: 9k with 6k @HMP (6:20/km) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 18k (last 6k @6:20/km) · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W10<span style="color:#475569"> · Sep 21</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:100.0%;height:100%;background:#8b5cf6;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">27 km</span></div></div><div class="gbar" data-tip="Week 11 (Sep 28) · Taper · target 18 km · long 12 km — Mon: Strength training · Tue: 6k easy with 4×100m strides · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 12k @7:00–7:15/km · Sun: Rest or bike" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W11<span style="color:#475569"> · Sep 28</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:66.7%;height:100%;background:#86efac;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">18 km</span></div></div><div class="gbar" data-tip="Week 12 (Oct 5) · Race week · target 25 km · long 0 km — Mon: Strength (light) · Tue: Easy 4k + 4×100m strides · Wed: Rest · Thu: Rest · Fri: Rest · Sat: Rest · Sun: RACE DAY 🏁 — 21.1k Half Marathon" style="display:flex;align-items:center;gap:.6rem;margin-bottom:.34rem;opacity:0.92"><div style="flex:0 0 86px;font-size:.7rem;color:#94a3b8">W12<span style="color:#475569"> · Oct 5</span></div><div style="flex:1;background:#0f172a;border-radius:6px;height:22px;position:relative;"><div class="gbar-fill" style="width:93.0%;height:100%;background:#ef4444;border-radius:6px"></div><span style="position:absolute;right:8px;top:0;line-height:22px;font-size:.68rem;color:#e2e8f0">25 km</span></div></div></div>
+
+    <p class="section-heading mt-4">Full Week-by-Week Schedule</p>
+    <div class="table-responsive"><table class="table table-sm table-hover align-middle mb-0"><thead class="table-dark"><tr><th>Phase</th><th>Week</th><th>Target</th><th>Long run</th><th>Daily sessions</th></tr></thead><tbody><tr class=""><td><span class="badge" style="background:#3b82f6">Base</span></td><td>W1 · Jul 20</td><td>13 km</td><td>8 km</td><td class="text-muted small">Mon: Strength training · Tue: Easy 5k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 8k @7:00–7:30/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#3b82f6">Base</span></td><td>W2 · Jul 27</td><td>16 km</td><td>10 km</td><td class="text-muted small">Mon: Strength training · Tue: 6k with 4×100m strides @6:00/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 10k @7:00–7:15/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#3b82f6">Base</span></td><td>W3 · Aug 3</td><td>18 km</td><td>11 km</td><td class="text-muted small">Mon: Strength training · Tue: 7k with 4×400m @5:30–5:50/km (2min rest) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 11k @6:50–7:15/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#93c5fd">Base ↩ Recovery</span></td><td>W4 · Aug 10</td><td>13 km</td><td>8 km</td><td class="text-muted small">Mon: Strength training · Tue: Easy 5k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 8k @7:00–7:30/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#f97316">Build</span></td><td>W5 · Aug 17</td><td>21 km</td><td>13 km</td><td class="text-muted small">Mon: Strength training · Tue: 8k with 3k tempo @6:00–6:20/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 13k @6:50–7:15/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#f97316">Build</span></td><td>W6 · Aug 24</td><td>22 km</td><td>14 km</td><td class="text-muted small">Mon: Strength training · Tue: 8k with 4×1k @5:30–5:50/km (90s rest) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 14k @6:45–7:10/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#f97316">Build</span></td><td>W7 · Aug 31</td><td>25 km</td><td>16 km</td><td class="text-muted small">Mon: Strength training · Tue: 9k with 5k tempo @5:50–6:10/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 16k @6:45–7:10/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#fdba74">Build ↩ Recovery</span></td><td>W8 · Sep 7</td><td>16 km</td><td>10 km</td><td class="text-muted small">Mon: Strength training · Tue: Easy 6k @7:00–7:30/km · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 10k @7:00–7:15/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#8b5cf6">Specific</span></td><td>W9 · Sep 14</td><td>27 km</td><td>18 km</td><td class="text-muted small">Mon: Strength training · Tue: 9k with 5k @HMP (6:20/km) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 18k (last 5k @6:20/km) · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#8b5cf6">Specific</span></td><td>W10 · Sep 21</td><td>27 km</td><td>18 km</td><td class="text-muted small">Mon: Strength training · Tue: 9k with 6k @HMP (6:20/km) · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Long 18k (last 6k @6:20/km) · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#86efac">Taper</span></td><td>W11 · Sep 28</td><td>18 km</td><td>12 km</td><td class="text-muted small">Mon: Strength training · Tue: 6k easy with 4×100m strides · Wed: Strength training · Thu: Rest · Fri: Strength training · Sat: Easy 12k @7:00–7:15/km · Sun: Rest or bike</td></tr><tr class=""><td><span class="badge" style="background:#ef4444">Race week</span></td><td>W12 · Oct 5</td><td>25 km</td><td>0 km</td><td class="text-muted small">Mon: Strength (light) · Tue: Easy 4k + 4×100m strides · Wed: Rest · Thu: Rest · Fri: Rest · Sat: Rest · Sun: RACE DAY 🏁 — 21.1k Half Marathon</td></tr></tbody></table></div>
+
+  </div>
+
+  <!-- TAB: RACE STRATEGY -->
+  <div class="tab-pane fade content-card" id="tab-strategy">
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>📅 Training Phases</h6>
+          <ul>
+            <li><strong>Weeks 1–4 · Base:</strong> Build consistency, easy mileage, 1 long run/week up to 11k.</li>
+            <li><strong>Weeks 5–8 · Build:</strong> Introduce tempo &amp; intervals. Long run grows to 16k.</li>
+            <li><strong>Weeks 9–10 · Specific:</strong> HM-pace segments in long runs (18k). Race rehearsal.</li>
+            <li><strong>Weeks 11–12 · Taper:</strong> Drop volume, keep sharpness, arrive fresh.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>📆 Weekly Template (2 runs + 3 strength)</h6>
+          <ul>
+            <li><strong>Mon:</strong> Strength training.</li>
+            <li><strong>Tue:</strong> Quality run — intervals/tempo (Base–Build) or HM pace (Specific).</li>
+            <li><strong>Wed:</strong> Strength training.</li>
+            <li><strong>Thu:</strong> Rest.</li>
+            <li><strong>Fri:</strong> Strength training.</li>
+            <li><strong>Sat:</strong> Long run (progressive; HMP segments from W9).</li>
+            <li><strong>Sun:</strong> Rest or bike ride.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>⏱️ Training Pace Zones</h6>
+          <div class="pace-zone"><span class="pace-dot" style="background:#22c55e"></span><span><strong>Easy / Recovery</strong> — 7:00–7:30 min/km</span></div>
+          <div class="pace-zone"><span class="pace-dot" style="background:#3b82f6"></span><span><strong>Long run</strong> — 6:45–7:15 min/km</span></div>
+          <div class="pace-zone"><span class="pace-dot" style="background:#fbbf24"></span><span><strong>HM Pace (safe)</strong> — ~7:06 min/km (sub 2:30)</span></div>
+          <div class="pace-zone"><span class="pace-dot" style="background:#22c55e"></span><span><strong>HM Pace (stretch)</strong> — ~6:23 min/km (sub 2:15)</span></div>
+          <div class="pace-zone"><span class="pace-dot" style="background:#f97316"></span><span><strong>Tempo / Threshold</strong> — 5:50–6:20 min/km</span></div>
+          <div class="pace-zone"><span class="pace-dot" style="background:#8b5cf6"></span><span><strong>Intervals (400m–1k)</strong> — 5:20–5:50 min/km</span></div>
+          <p class="small text-muted mt-2">Keep ≥ 80% of weekly km at easy effort. With 2 runs/week, each one counts — nail the purpose of each session.</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>🏁 Race Day Strategy</h6>
+          <ul>
+            <li><strong>Target:</strong> Sub 2:30 (safe) / Sub 2:15 (stretch).</li>
+            <li><strong>Split strategy:</strong> Even or slight negative split — first 10k conservative, second 11k push if feeling good.</li>
+            <li><strong>First 3k:</strong> Resist the crowd, settle into rhythm. Run by feel not GPS.</li>
+            <li><strong>Km 15–18:</strong> This is where the race starts. Stay focused, maintain form.</li>
+            <li><strong>Fuel:</strong> One gel at km 8–10 if practiced in training.</li>
+            <li><strong>Warm-up:</strong> 10 min easy jog + drills, 30 min before gun.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>⚡ Key Session Types</h6>
+          <ul>
+            <li><strong>Strides (Base, W1–2):</strong> 4×100m relaxed fast running after an easy run — builds neuromuscular speed without fatigue.</li>
+            <li><strong>400m intervals (Base, W3):</strong> 4×400m at 5:30–5:50/km with 2 min rest. Short, sharp, develops efficiency.</li>
+            <li><strong>Tempo (Build):</strong> 3–5k continuous at 5:50–6:20/km — comfortably hard.</li>
+            <li><strong>1k intervals (Build):</strong> 4×1k at 5:30–5:50/km with 90s recovery.</li>
+            <li><strong>HMP runs (Specific):</strong> 5–6k blocks at target 6:20/km within a longer run.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>🛡️ Injury Prevention</h6>
+          <ul>
+            <li>With 2 runs/week + 3 strength, your running volume is low-risk — keep it that way.</li>
+            <li>Step-back week every 4th week (−15% volume).</li>
+            <li>Strength focus: glutes, core, single-leg stability — you already do this 3×/week.</li>
+            <li>If legs feel heavy from strength → keep run easy, skip the quality component.</li>
+            <li>Bike rides are great active recovery between runs.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: NUTRITION -->
+  <div class="tab-pane fade content-card" id="tab-nutrition">
+
+    <div class="text-muted small mb-3">
+      Pre-run and race-day nutrition guidance. You eat high-protein already — these tips focus on
+      fueling around key training sessions and race day. Nothing new on race day — test everything in training first.
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>🌅 Before Quality Runs (Tuesday)</h6>
+          <ul>
+            <li><strong>If running in the morning:</strong> eat something small 60–90 min before — a banana, toast with honey, or a few rice cakes.</li>
+            <li><strong>If running after work:</strong> have a carb-rich snack 1–2 hours before — a banana, an energy bar, or a small bowl of oats.</li>
+            <li>Keep it light and low-fat so your stomach isn’t working hard during intervals/tempo.</li>
+            <li>Have a glass of water beforehand. Coffee is fine if that’s your routine.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>📏 Before Long Runs (Saturday)</h6>
+          <ul>
+            <li><strong>Night before:</strong> slightly carb-heavier dinner than usual — extra rice/pasta/potatoes. Keep it familiar.</li>
+            <li><strong>Morning of:</strong> eat 60–90 min before. Bigger than Tuesday — e.g. oatmeal + banana, or 2 slices toast with honey + a coffee.</li>
+            <li><strong>Runs &gt; 90 min (W9–10):</strong> bring a gel or energy chews. Practice taking one around km 8–10 — this is your race day rehearsal.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>🔄 After Runs — Recovery</h6>
+          <ul>
+            <li>Within the hour: something with carbs + protein. You eat high-protein already — just add carbs. Rice + chicken, yogurt with granola, a protein shake + banana.</li>
+            <li>Rehydrate steadily. Electrolyte tab if it was hot or sweaty.</li>
+            <li>Matters most after long runs and quality sessions.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="strategy-card">
+          <h6>💧 Hydration</h6>
+          <ul>
+            <li>Baseline: drink through the day so your pee stays pale.</li>
+            <li>On long runs: sip regularly — a mouthful every 15–20 min.</li>
+            <li>Hot sessions (Jul/Aug): electrolyte tab or sports drink. Munich in October will be cooler.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="strategy-card" style="border-color:#22c55e">
+          <h6 style="color:#22c55e">🏁 Race Day Nutrition — Munich Half Marathon, Oct 11</h6>
+          <div style="display:flex;flex-wrap:wrap;gap:.75rem">
+            <div style="flex:1;min-width:200px;background:#0f172a;border-radius:8px;padding:.75rem">
+              <div style="font-size:.7rem;font-weight:700;color:#22c55e;text-transform:uppercase;margin-bottom:.5rem">Night Before</div>
+              <div style="font-size:.82rem;color:#94a3b8">Familiar, carb-rich dinner. Extra pasta/rice. Nothing new, nothing too heavy or spicy. Hydrate well. Sleep early — the sleep 2 nights before matters most.</div>
+            </div>
+            <div style="flex:1;min-width:200px;background:#0f172a;border-radius:8px;padding:.75rem">
+              <div style="font-size:.7rem;font-weight:700;color:#fbbf24;text-transform:uppercase;margin-bottom:.5rem">Race Morning</div>
+              <div style="font-size:.82rem;color:#94a3b8">2–3 h before the gun: familiar carb-rich meal — oatmeal + banana, toast + honey, whatever you tested on long-run Saturdays. Optional small gel 15 min before start.</div>
+            </div>
+            <div style="flex:1;min-width:200px;background:#0f172a;border-radius:8px;padding:.75rem">
+              <div style="font-size:.7rem;font-weight:700;color:#60a5fa;text-transform:uppercase;margin-bottom:.5rem">During the Race</div>
+              <div style="font-size:.82rem;color:#94a3b8">One gel around km 8–10 if you practiced it in training. Sip water at stations. For a half marathon, you don’t need heavy fueling — glycogen stores are enough if you ate well.</div>
+            </div>
+            <div style="flex:1;min-width:200px;background:#0f172a;border-radius:8px;padding:.75rem">
+              <div style="font-size:.7rem;font-weight:700;color:#a78bfa;text-transform:uppercase;margin-bottom:.5rem">After Finishing</div>
+              <div style="font-size:.82rem;color:#94a3b8">Recovery meal (carbs + protein) within an hour. Rehydrate. Then celebrate — you earned it. 🎉</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /tab-content -->
+
+</div><!-- /container -->
+
+<footer>Munich Half Marathon 2026 · Jayendra · Auto-generated from Intervals.icu export · Jul 17, 2026</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleCurve(id){
+  var d = document.getElementById('curve-' + id);
+  if(d) d.style.display = (d.style.display === 'none' ? 'table-row' : 'none');
+}
+</script>
+<div id="cht"></div>
+<script>
+(function(){
+  var tip = document.getElementById('cht');
+  document.addEventListener('mousemove', function(e){
+    if(tip.style.display !== 'none'){
+      var x = e.clientX + 16, y = e.clientY - 10;
+      if(x + tip.offsetWidth > window.innerWidth - 8) x = e.clientX - tip.offsetWidth - 12;
+      if(y + tip.offsetHeight > window.innerHeight - 8) y = e.clientY - tip.offsetHeight - 10;
+      tip.style.left = x + 'px';
+      tip.style.top  = y + 'px';
+    }
+  });
+  function attach(el){
+    el.addEventListener('mouseenter', function(){
+      tip.textContent = el.getAttribute('data-tip');
+      tip.style.display = 'block';
+    });
+    el.addEventListener('mouseleave', function(){ tip.style.display = 'none'; });
+  }
+  document.querySelectorAll('[data-tip]').forEach(attach);
+  document.addEventListener('shown.bs.tab', function(){
+    document.querySelectorAll('[data-tip]').forEach(attach);
+  });
+})();
+</script>
+</body>
+</html>
