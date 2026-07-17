@@ -613,7 +613,7 @@ def _week_calendar_html(week_entry, targets, today, plan_days=None):
         icon = _icon_for(session)
         days_info.append((dk, session, icon))
 
-    week_monday = today - timedelta(days=today.weekday())
+    week_monday = PLAN_START + timedelta(weeks=wnum - 1)
     phase_color = PHASE_COLORS.get(phase, '#94a3b8')
     plan_day_map = {d['day']: d for d in plan_days} if plan_days else {}
     _icon_map = {'rest': '\U0001F4A4', 'easy': '\U0001F3C3', 'quality': '⚡', 'long': '\U0001F4CF', 'race': '\U0001F3C1'}
@@ -780,7 +780,7 @@ def _weekly_plan_table(targets):
 def build_weekly_accumulation_chart(runs, current_week_entry, targets):
     wnum, wdate_str, total_km, long_km, quality, phase = current_week_entry
     today_d = date.today()
-    week_monday = today_d - timedelta(days=today_d.weekday())
+    week_monday = PLAN_START + timedelta(weeks=wnum - 1)
     DAY_KEYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
     parsed = _parse_day_sessions(quality)
@@ -802,7 +802,8 @@ def build_weekly_accumulation_chart(runs, current_week_entry, targets):
         actual_cum.append(as_)
 
     target_total = targets[wnum - 1] if wnum - 1 < len(targets) else planned_cum[-1]
-    today_idx = min((today_d - week_monday).days, 6)
+    today_offset = (today_d - week_monday).days
+    today_idx = min(today_offset, 6) if 0 <= today_offset <= 6 else -1
 
     W, H = 920, 290
     pad_l, pad_r, pad_t, pad_b = 46, 14, 28, 48
