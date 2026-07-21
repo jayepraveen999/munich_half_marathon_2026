@@ -1,6 +1,6 @@
 {
   "generated": "2026-07-17",
-  "last_adjusted": "2026-07-20",
+  "last_adjusted": "2026-07-21",
   "weeks": [
     {
       "week": 1,
@@ -24,7 +24,7 @@
           "day": "Tue",
           "session_type": "easy",
           "planned": "Easy 5k @7:00–7:30/km",
-          "actual_km": null,
+          "actual_km": 0.0,
           "actual_pace_min_km": null,
           "actual_hr": null,
           "actual_name": null
