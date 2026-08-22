@@ -1,6 +1,6 @@
 {
   "generated": "2026-07-17",
-  "last_adjusted": "2026-08-21",
+  "last_adjusted": "2026-08-22",
   "weeks": [
     {
       "week": 1,
@@ -380,7 +380,7 @@
           "day": "Sat",
           "session_type": "long",
           "planned": "Long 13k @6:50–7:15/km",
-          "actual_km": null,
+          "actual_km": 0.0,
           "actual_pace_min_km": null,
           "actual_hr": null,
           "actual_name": null
